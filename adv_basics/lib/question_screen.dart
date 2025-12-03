@@ -4,7 +4,10 @@ import 'package:adv_basics/CustomWidget/answer_button.dart';
 import 'package:adv_basics/data/questions.dart';
 
 class QuestionScreen extends StatefulWidget {
-  const QuestionScreen({super.key});
+  const QuestionScreen({super.key, required this.onAnswerSelected, required this.currentQuestionIndex});
+
+  final void Function(String answer) onAnswerSelected;
+  final int currentQuestionIndex;
 
   @override
   State<QuestionScreen> createState() {
@@ -13,44 +16,18 @@ class QuestionScreen extends StatefulWidget {
 }
 
 class _QuestionScreenState extends State<QuestionScreen> {
-  var currentQuestionIndex = 0;
-
-  void onQuestionAnswered(){
-    setState(() {
-      currentQuestionIndex++;
-
-      if (currentQuestionIndex >= questions.length) {
-        currentQuestionIndex = 0; // set back to first question
-      }
-    });
-  }
-
-  void checkAnswer(String answer){
-    if (answer == questions[currentQuestionIndex].answers[0]) {
-      onQuestionAnswered();
-    }
-    else {
-      showDialog(context: context, builder: (context) => AlertDialog(
-        title: Text('Wrong answer'),
-        content: Text('The correct answer is ${questions[currentQuestionIndex].answers[0]}'),
-        actions: [
-          TextButton(onPressed: () {
-            Navigator.pop(context);
-          }, 
-          child: Text('OK'))
-        ],
-      ));
-    }
-  }
-  
-  @override
-  void initState() {
-    super.initState();
+  void onQuestionAnswered(String selectedAnswer){
+    widget.onAnswerSelected(selectedAnswer);
   }
 
   @override 
   Widget build(BuildContext context) {
-  final currentQuestion = questions[currentQuestionIndex];
+    // Check if index is out of bounds
+    if (widget.currentQuestionIndex >= questions.length || widget.currentQuestionIndex < 0) {
+      return const SizedBox.shrink();
+    }
+    
+    final currentQuestion = questions[widget.currentQuestionIndex];
 
     return Center(
       child: Padding(
@@ -75,7 +52,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
             SizedBox(height: 30),
             ...currentQuestion.getshuffledAnswers().map((answer) {
               return AnswerButton(answerText: answer, onTap: () {
-                checkAnswer(answer); 
+                onQuestionAnswered(answer); 
               });
             }),
           ],

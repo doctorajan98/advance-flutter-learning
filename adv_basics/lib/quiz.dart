@@ -1,6 +1,8 @@
+import 'package:adv_basics/data/questions.dart';
 import 'package:adv_basics/start_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adv_basics/question_screen.dart';
+import 'package:adv_basics/score_screen.dart';
 
 class Quiz extends StatefulWidget {
   const Quiz({super.key});
@@ -12,6 +14,7 @@ class Quiz extends StatefulWidget {
 }
 
 class _QuizState extends State<Quiz> {
+  final List<String> selectedAnswers = [];
   var activeScreen = 'start-screen';
 
   switchScreen() {
@@ -20,12 +23,45 @@ class _QuizState extends State<Quiz> {
     });
   }
 
+  void chooseAnswer(String answer) {
+    if (selectedAnswers.length >= questions.length) {
+      return; // Already answered all questions, don't process more
+    }
+    
+    setState(() {
+      selectedAnswers.add(answer);
+
+      if (selectedAnswers.length >= questions.length) {
+        activeScreen = 'score-screen';
+      }
+    });
+  }
+
+  void restartQuiz() {
+    setState(() {
+      selectedAnswers.clear();
+      activeScreen = 'start-screen';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget screenWidget = StartScreen(switchScreen);
 
-    if (activeScreen == 'question-screen') {
-      screenWidget = QuestionScreen();
+    final currentQuestionIndex = selectedAnswers.length;
+
+    if (activeScreen == 'question-screen' && currentQuestionIndex < questions.length) {
+      screenWidget = QuestionScreen(
+        onAnswerSelected: chooseAnswer,
+        currentQuestionIndex: currentQuestionIndex,
+      );
+    }
+
+    if (activeScreen == 'score-screen' || currentQuestionIndex >= questions.length) {
+      screenWidget = ScoreScreen(
+        answeredQuestions: selectedAnswers,
+        onRestart: restartQuiz,
+      );
     }
 
     return MaterialApp(
